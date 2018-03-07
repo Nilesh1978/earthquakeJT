@@ -1,0 +1,18 @@
+Package: earthquakeJT
+Type: Package
+Title: Process NOAA Earthquake Data
+Version: 0.1.0.9000
+Author: Johannes van Tent
+Maintainer: Johannes van Tent <yourself@somewhere.net>
+Description: To be described later. More about what it does (maybe more than one
+    line) Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Imports:
+    dplyr,
+    readr,
+    tidyr,
+    magrittr,
+    ggplot2
