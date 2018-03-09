@@ -47,6 +47,54 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", Geom,
 )
 
 
+#' A timeline geom
+#'
+#' This geom will create a timeline where every event will be plotted as a point on the timeline.
+#'
+#' @param mapping Set of aesthetic mappings created by \code{aes()} or \code{aes_()}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level of the plot. You must supply mapping if there is no plot mapping.
+#' @param data The data to be displayed in this layer. There are three options:
+#'
+#' If NULL, the default, the data is inherited from the plot data as specified in the call to \code{ggplot()}.
+#'
+#' A data.frame, or other object, will override the plot data. All objects will be fortified to produce a data frame. See \code{fortify()} for which variables will be created.
+#'
+#' A function will be called with a single argument, the plot data. The return value must be a \code{data.frame}, and will be used as the layer data.
+#'
+#' @param stat The statistical transformation to use on the data for this layer, as a string.
+#' @param position Position adjustment, either as a string, or the result of a call to a position adjustment function.
+#' @param na.rm If \code{FALSE}, the default, missing values are removed with a warning. If \code{TRUE}, missing values are silently removed.
+#' @param show.legend logical. Should this layer be included in the legends? \code{NA}, the default, includes if any aesthetics are mapped. \code{FALSE} never includes, and \code{TRUE} always includes. It can also be a named logical vector to finely select the aesthetics to display.
+#' @param inherit.aes If \code{FALSE}, overrides the default aesthetics, rather than combining with them. This is most useful for helper functions that define both data and aesthetics and shouldn't inherit behaviour from the default plot specification, e.g. \code{borders()}.
+#' @param ... other arguments passed on to \code{layer()}. These are often aesthetics, used to set an aesthetic to a fixed value, like \code{color = "red"} or \code{size = 3}. They may also be parameters to the paired geom/stat.
+#'
+#' @section Aesthetics: \code{geom_timeline} understands the following aesthetics :
+#' \itemize{
+#' \item{x,   should be a date}
+#' \item{y,   a timeline is created for each value of y}
+#' \item{shape}
+#' \item{colour}
+#' \item{size}
+#' \item{alpha}
+#' \item{stroke}
+#' \item{fill}
+#' }
+#'
+#' @seealso geom_point
+#'
+#' @import ggplot2
+#'
+#' @return
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'
+#' data <- get_eq_data() %>% eq_clean_data() %>% eq_location_clean()
+#' ggplot() + geom_timeline(data = data, aes(x = date))
+#' ggplot() + geom_timeline(data = data, aes(x = date, y = COUNTRY))
+#'
+#' }
 geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
                               position = "identity", na.rm = FALSE, show.legend = NA,
                               inherit.aes = TRUE, ...) {
