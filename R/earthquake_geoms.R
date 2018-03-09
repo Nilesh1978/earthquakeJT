@@ -69,7 +69,7 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", Geom,
 #'
 #' @section Aesthetics: \code{geom_timeline} understands the following aesthetics :
 #' \itemize{
-#' \item{x,   should be a date}
+#' \item{x, required, should be a date}
 #' \item{y,   a timeline is created for each value of y}
 #' \item{shape}
 #' \item{colour}
@@ -79,11 +79,12 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", Geom,
 #' \item{fill}
 #' }
 #'
-#' @seealso geom_point
+#' @seealso geom_point (ggplot2)
 #'
 #' @import ggplot2
+#' @import grid
 #'
-#' @return
+#' @return Returns a layer that can be added to a ggplot object.
 #'
 #' @export
 #'
@@ -113,7 +114,7 @@ geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
 
 GeomTimelineLabel <- ggplot2::ggproto("GeomTimelineLabel", Geom,
                                       required_aes = c("x", "label"),
-                                      default_aes = aes(shape = 19, colour = "black", size = 1.5, alpha = NA, stroke = 0.5, fill="black", y = 0.25),
+                                      default_aes = aes(shape = 19, colour = "black", size = 1.5, alpha = NA, stroke = 0.5, fill="black", y = 0.25, magnitude = NA),
 
                                       draw_key = draw_key_point,
 
@@ -121,7 +122,7 @@ GeomTimelineLabel <- ggplot2::ggproto("GeomTimelineLabel", Geom,
 
                                         if(!is.na(n_max)){data <- data %>% dplyr::arrange(-magnitude) %>% head(n_max)}
                                         coords <- coord$transform(data, panel_scales)
-                                        str(coords)
+                                        #str(coords)
                                         # creates the label lines
                                         #y_values <- unique(coords$y)
                                         no_y <- length(unique(coords$y))
@@ -145,6 +146,41 @@ GeomTimelineLabel <- ggplot2::ggproto("GeomTimelineLabel", Geom,
 
 
 # when using n_max, the aes magnitude needs to be provided
+#' A labeler geom for the geom_timeline
+#'
+#' This geom creates labels to annotate the timeline(s) created by the \code{geom_timeline}.
+#'
+#' @inheritParams geom_timeline
+#' @param n_max optional, a number to label only those earthquakes with the largest magnitudes. An aesthetic \code{magnitude} must be provided.
+#' @param ... other arguments passed on to \code{layer()}. These are often aesthetics, used to set an aesthetic to a fixed value, like \code{color = "red"} or \code{size = 3}. They may also be parameters to the paired geom/stat.
+#'
+#' @section Aesthetics: \code{geom_timeline} understands the following aesthetics :
+#' \itemize{
+#' \item{x, required, should be a date}
+#' \item{label, required, the text to display}
+#' \item{y, the same as in geom_timeline}
+#' \item{magnitude, should be provided when n_max is used}
+#' }
+#'
+#' @import ggplot2
+#' @import grid
+#' @import dplyr
+#'
+#' @return Returns a layer that can be added to a ggplot object.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'
+#' data <- get_eq_data() %>% eq_clean_data() %>% eq_location_clean()
+#'
+#' ggplot(data, aes(x = date)) + geom_timeline() + geom_timeline_label(aes(label = LOCATION))
+#'
+#' ggplot(data, aes(x = date)) +
+#'     geom_timeline() +
+#'     geom_timeline_label(aes(label = LOCATION, magnitude = EQ_PRIMARY), n_max = 5)
+#' }
 geom_timeline_label <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", na.rm = FALSE,
                                 show.legend = NA, inherit.aes = TRUE, n_max = NA, ...){
 
