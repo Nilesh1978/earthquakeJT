@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/RedTent/earthquakeJT.svg?branch=master)](https://travis-ci.org/RedTent/earthquakeJT)
+
 # earthquakeJT
 
 The goal of earthquakeJT is to retrieve and visualize earthquake data from the NOAA significant earthquake database. 
