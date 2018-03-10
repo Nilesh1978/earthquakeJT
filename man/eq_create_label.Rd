@@ -17,6 +17,8 @@ the Magnitude and the Total number of deaths for each earthquake
 This function adds a column \code{popup_text}  to the earthquake dataframe. This column can be used for the annotation column in \code{eq_map()}
 }
 \examples{
-eq_create_label(data = get_eq_data() )
+\dontrun{
 
+eq_create_label(data = get_eq_data() )
+}
 }

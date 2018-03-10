@@ -1,0 +1,296 @@
+---
+title: "Using earthquakeJT"
+author: "Johannes van Tent"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using earthquakeJT}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r prep, include = FALSE}
+library(readr)
+library(dplyr)
+get_eq_data <- function(url = "https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=13&d=189&dfn=signif.txt"){
+  readr::read_delim(url,delim="\t", col_types = readr::cols())
+}
+
+
+eq_clean_data <- function(data){
+  data <- data %>% dplyr::mutate(date = lubridate::make_date(year = YEAR, month = ifelse(is.na(MONTH),1,MONTH), day = ifelse(is.na(DAY),1,DAY)),
+                                 LATITUDE = as.numeric(LATITUDE),
+                                 LONGITUDE = as.numeric(LONGITUDE),
+                                 EQ_PRIMARY = as.numeric(EQ_PRIMARY)
+                                 )
+}
+
+eq_location_clean <- function(data){
+  data <- data %>% dplyr::mutate(LOCATION_NAME = trimws(stringr::str_replace(LOCATION_NAME, pattern = "^.*:[:space:]{1}", replacement = ""))) %>%
+    mutate(LOCATION_NAME = tools::toTitleCase(tolower(LOCATION_NAME))) # calling mutate on LOCATION_NAME twice to avoid excessive nesting
+  }
+
+```
+
+```{r geom, include = FALSE}
+
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(stringr)
+library(lubridate)
+library(grid)
+
+GeomTimeline <- ggplot2::ggproto("GeomTimeline", Geom,
+                           required_aes = c("x"),
+                           default_aes = aes(shape = 19,
+                                             colour = "black",
+                                             size = 1.5,
+                                             alpha = NA,
+                                             stroke = 0.5,
+                                             fill="black",
+                                             y = 0.25),
+
+                           draw_key = draw_key_point,
+
+                           draw_panel = function(data, panel_scales, coord) {
+                             coords <- coord$transform(data, panel_scales)
+
+                             # creates a line on which the earthquakes are plotted
+                             y_values <- unique(coords$y)
+                             no_y <- length(y_values)
+                             eq_line <- grid::polylineGrob(x = rep(c(0,1),no_y), y = sort(rep(y_values,2)), id=sort(rep(c(1:no_y),2)), gp=grid::gpar(col = "grey", lwd = 3))
+                             #creates the points on the timeline
+                             eq_points <- grid::pointsGrob(
+                               coords$x, coords$y,
+                               pch = coords$shape,
+                               size = unit(coords$size*.pt, "mm"),
+                               gp = gpar(col = scales::alpha(coords$colour, coords$alpha),
+                                         fill = scales::alpha(coords$fill, coords$alpha),
+                                         fontsize = coords$size * .pt + coords$stroke * .stroke/2,
+                                         lwd = coords$stroke * .stroke/2)
+                               )
+                             plot <- grid::gTree(children = grid::gList(eq_line, eq_points))
+
+                           }
+)
+
+
+geom_timeline <- function(mapping = NULL, data = NULL, stat = "identity",
+                              position = "identity", na.rm = FALSE, show.legend = NA,
+                              inherit.aes = TRUE, ...) {
+  theme_light()
+  layer(
+    geom = GeomTimeline, mapping = mapping,  data = data, stat = stat,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(na.rm = na.rm, ...)
+  )
+}
+
+
+GeomTimelineLabel <- ggplot2::ggproto("GeomTimelineLabel", Geom,
+                                      required_aes = c("x", "label"),
+                                      default_aes = aes(shape = 19, colour = "black", size = 1.5, alpha = NA, stroke = 0.5, fill="black", y = 0.25, magnitude = NA),
+
+                                      draw_key = draw_key_point,
+
+                                      draw_panel = function(data, panel_scales, coord, n_max) {
+
+                                        if(!is.na(n_max)){data <- data %>% dplyr::arrange(-magnitude) %>% head(n_max)}
+                                        coords <- coord$transform(data, panel_scales)
+                                        #str(coords)
+                                        # creates the label lines
+                                        #y_values <- unique(coords$y)
+                                        no_y <- length(unique(coords$y))
+                                        label_line <- grid::polylineGrob(x = c(rbind(coords$x,coords$x)),
+                                                                         y = c(rbind(coords$y,coords$y + (1/(no_y+4)))),
+                                                                         id=sort(rep(c(1:length(coords$x)),2)),
+                                                                         gp=grid::gpar(col = "grey", lwd = 2)
+                                                                         )
+                                        #creates the labels
+                                        label_text <- grid::textGrob(label = coords$label,
+                                                                     x = coords$x,
+                                                                     y = coords$y + (1/(no_y+3.8)),
+                                                                     rot = 45,
+                                                                     just = "left"
+
+                                        )
+                                        plot <- grid::gTree(children = grid::gList(label_line, label_text))
+
+                                      }
+)
+
+
+geom_timeline_label <- function(mapping = NULL, data = NULL, stat = "identity", position = "identity", na.rm = FALSE,
+                                show.legend = NA, inherit.aes = TRUE, n_max = NA, ...){
+
+  theme_light()
+  layer(
+    geom = GeomTimelineLabel, mapping = mapping,  data = data, stat = stat,
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(n_max = n_max, na.rm = na.rm, ...)
+  )
+}
+
+```
+
+```{r map, include = FALSE}
+eq_map <- function(data, annot_col=NA){
+
+  leaflet::leaflet(data) %>%
+    leaflet::addTiles() %>%
+    leaflet::addCircleMarkers(lng = ~LONGITUDE, lat = ~LATITUDE, radius = ~EQ_PRIMARY, weight = 2, popup = data[[annot_col]] ) 
+    
+}
+
+eq_create_label <- function(data){
+
+  data %>% dplyr::mutate(popup_text = paste0(ifelse(is.na(LOCATION_NAME), "", paste0("<b>Location: </b>", LOCATION_NAME)),
+                                    ifelse(is.na(EQ_PRIMARY), "", paste0("</br><b>Magnitude: </b>",EQ_PRIMARY)),
+                                    ifelse(is.na(TOTAL_DEATHS), "", paste0("</br><b>Total deaths: </b>", TOTAL_DEATHS))
+  ))
+}
+
+
+
+```
+
+This package provides a number of functions that can be used to retrieve, clean and visualize data from the NOAA Significant Earthquake Database.
+
+The Significant Earthquake Database contains information on destructive earthquakes from 2150 B.C. to the present
+that meet at least one of the following criteria:
+
+- moderate damage, approximately $1 million or more
+- 10 or more deaths
+- magnitude 7.5 or greater
+- modified Mercalli Intensity X or greater
+- the earthquake generated a tsunami.
+
+The database should be referenced to as: National Geophysical Data Center / World Data Service (NGDC/WDS): Significant Earthquake Database. National Geophysical Data Center, NOAA. doi:10.7289/V5TD9V7K
+
+More information can be found at the [NOAA website](https://www.ngdc.noaa.gov/nndc/struts/form?t=101650&s=1&d=1)
+
+This vignette will describe how to use this package. The package can be divided in three major parts:
+
+- Retrieving and cleaning earthquake data
+- Visualizing earthquake data on a timeline
+- Visualizing earthquake data on an interactive map
+
+## Retrieving and cleaning earthquake data
+
+### Retrieving earthquake data
+
+The NOAA Significant Earthquake Database can be downloaded as a tab-delimited file from the [NOAA website](https://www.ngdc.noaa.gov/nndc/struts/form?t=101650&s=1&d=1). `get_eq_data` takes care of this and loads the data into a dataframe. It has only one argument url. The url defaults to the NOAA Significant Earthquake Database.
+
+```{r echo=TRUE, eval = FALSE}
+raw_earthquake_data <- get_eq_data()
+
+# essentially the same as
+
+raw_earthquake_data <- get_eq_data(url = "https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=13&d=189&dfn=signif.txt")
+
+```
+
+### Cleaning earthquake data
+
+The package has two functions for cleaning the data, `eq_clean_data` and `eq_location_clean`.
+
+The `eq_clean_data` function changes the datatypes of the columns `LATITUDE`, `LONGITUDE` and `EQ_PRIMARY` to numeric. It also adds a column `date` which has the date. The date column is constructed from the columns YEAR, MONTH and DAY. In some cases the DAY or MONTH is missing. In those cases, DAY or MONTH is set to 1.
+
+The `eq_location_clean` function cleans the description of the location from the column `LOCATION_NAME`. The column `LOCATION_NAME` has redundant country names which are removed by this function. Please note that some earthquakes have multiple locations associated with them. In these cases only the last location is preserved.
+
+```{r echo=TRUE, eval = FALSE}
+clean_earthquake_data <- eq_clean_data(raw_earthquake_data )
+
+clean_location_earthquake_data <- eq_location_clean(clean_earthquake_data)
+
+```
+
+The functions for retrieving and cleaning earthquake data are suited to use in a pipe.
+
+```{r echo=TRUE, eval = FALSE}
+library(dplyr)
+
+clean_earthquake_data <- get_eq_data() %>% eq_clean_data() %>% eq_location_clean() 
+
+```
+
+## Visualizing earthquake data on a timeline
+
+The package holds two two geoms that can be used in accord with the ggplot2-package to create a timeline with earthquakes and to label them.
+
+### geom_timeline
+
+The `geom_timeline` can create a timeline. There is also an option to create stratified timelines for a factor *y*, e.g. country. The `geom_timeline` requires an x-aesthetic with the date. Optional aesthetics include *y* (for multiple timelines), *shape*, *colour*, *alpha*, *size*, *stroke* and *fill*.
+
+```{r echo=TRUE, fig.width= 8}
+
+library(dplyr)
+library(ggplot2)
+data <- get_eq_data() %>% eq_clean_data() %>% eq_location_clean() 
+
+subset <- dplyr::filter(data, COUNTRY %in% c("CHINA","USA","JAPAN"),date > as.POSIXlt.date("2016-01-01"))
+
+# basic use
+ggplot(subset, aes(x = date)) + geom_timeline() + theme_light()
+
+
+ggplot(subset, aes(x = date)) + geom_timeline(aes(size = EQ_PRIMARY, colour = COUNTRY), alpha = 0.3) + theme_light()
+
+#multiple timelines by setting the y aesthetic
+ggplot(subset, aes(x = date, y = COUNTRY)) + geom_timeline(aes(size = EQ_PRIMARY, colour = COUNTRY), alpha = 0.3) + theme_light()
+
+```
+
+### geom_timeline_label
+
+The `geom_timeline_label` can be used to annotate the timeline created with labels. The geom needs an *x* and *label* aesthetic. Optional aesthetics include *y*, and *magnitude*. The geom has an option to label only the earthquakes with the largest magnitudes. This option can be set with the n_max parameter. Note that the *magnitude* must be provided as an aesthetic to use the n_max parameter.
+
+```{r echo = TRUE, fig.width = 8, fig.height = 6}
+
+ggplot(subset, aes(x = date)) + 
+  geom_timeline(aes(size = EQ_PRIMARY, colour = COUNTRY), alpha = 0.3) + 
+  theme_light() + 
+  geom_timeline_label(aes(label = LOCATION_NAME))
+
+# label multiple timelines
+ggplot(subset, aes(x = date, y = COUNTRY)) + 
+  geom_timeline(aes(size = EQ_PRIMARY, colour = COUNTRY), alpha = 0.3) + 
+  theme_light() +
+  geom_timeline_label(aes(label = LOCATION_NAME))
+
+# label only the largest earthquakes
+ggplot(subset, aes(x = date)) + 
+  geom_timeline(aes(size = EQ_PRIMARY, colour = COUNTRY), alpha = 0.3) + 
+  theme_light() + 
+  geom_timeline_label(aes(label = LOCATION_NAME, magnitude = EQ_PRIMARY), n_max = 5)
+
+```
+
+
+
+## Visualizing earthquake data on an interactive map
+
+The package has also a function `eq_map` to plot earthquake locations on an interactive map (using leaflet) and a function `eq_create_label` to create informative popups for these locations.
+
+The function `eq_map` takes a dataframe with cleaned earthquake data and has an optional `annot_col`-argument to create popups. The `eq_create_label` function takes a dataframe and adss a column `popup_text` to it which has the Location name, Magnitude and the number of deaths in HTML-format.
+
+```{r echo=TRUE, fig.width = 6}
+library(dplyr)
+data <- get_eq_data() %>% eq_clean_data() %>% eq_location_clean() 
+data_mex <- dplyr::filter(data, COUNTRY == "MEXICO" & lubridate::year(date) >= 2000)
+
+# without popups
+eq_map(data_mex)
+
+# date as popup
+eq_map(data_mex, annot_col = "date")
+
+# popups with eq_create_label
+data_mex_popup <- eq_create_label(data_mex)
+eq_map(data_mex_popup, annot_col = "popup_text")
+
+
+```
+
+

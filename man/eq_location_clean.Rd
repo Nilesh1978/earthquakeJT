@@ -20,3 +20,11 @@ This function removes the country from the location name leaving only the locati
 In some rare cases the \code{LOCATION_NAME} column has more than one country and location.
 This function will keep only the last location that is present in the column. It removes all information before the last colon (:).
 }
+\examples{
+\dontrun{
+
+clean_data <- eq_clean_data(get_eq_data())
+clean_data_location <- eq_location_clean(clean_data)
+}
+
+}

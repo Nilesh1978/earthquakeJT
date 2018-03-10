@@ -15,6 +15,13 @@ This function returns the NOAA earthquake data with an added date column and coo
 \description{
 This function adds a date column to the NOAA significant earthquake date and converts longtitude and latitude to numeric
 }
+\note{
+If no month or day is available it is automatically set to 1.
+}
 \examples{
+\dontrun{
+
 clean_data <- eq_clean_data(raw_data)
+clean_data <- eq_clean_data(get_eq_data())
+}
 }

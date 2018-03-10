@@ -9,7 +9,7 @@ eq_map(data, annot_col = NA)
 \arguments{
 \item{data}{A (filtered and) cleaned dataframe with locations from the NOAA Earthquake database}
 
-\item{annot_col}{A character string with the column that should be used for the pop_ups on the map}
+\item{annot_col}{A character string with the column that should be used for the pop-ups on the map}
 }
 \value{
 A Leaflet map widget with the plotted locations of Earthquakes
@@ -18,8 +18,10 @@ A Leaflet map widget with the plotted locations of Earthquakes
 This function creates a Leaflet map with the locations of earthquakes from the NOAA Earthquake database
 }
 \examples{
+\dontrun{
+
 get_eq_data() \%>\%
  eq_clean_data() \%>\%
  eq_map(annot_col = "date")
-
+}
 }

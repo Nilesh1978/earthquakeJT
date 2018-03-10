@@ -1,10 +1,10 @@
-library(ggplot2)
+#library(ggplot2)
 #library(devtools)
 #library(dplyr)
 #library(readr)
 #library(stringr)
 #library(lubridate)
-library(grid)
+#library(grid)
 
 #Build a geom for ggplot2 called geom_timeline() for plotting a time line of earthquakes ranging from xmin to xmax dates
 #with a point for each earthquake. Optional aesthetics include color, size, and alpha (for transparency).
@@ -192,18 +192,5 @@ geom_timeline_label <- function(mapping = NULL, data = NULL, stat = "identity", 
   )
 }
 
-
-#TESTREGEL
-#ggplot() + geom_timeline(data=data,aes(x=date,colour=YEAR)) + theme_minimal()
-#summary(as.factor(data$COUNTRY))
-#test <- dplyr::filter(data, COUNTRY %in% c("CHINA","JAPAN","USA"),date > as.POSIXlt.date("2016-01-01"))
-
-#ggplot(data=test,aes(x=date, y=COUNTRY, colour=EQ_PRIMARY ,size= EQ_PRIMARY, alpha=0.1 )) + geom_timeline() + theme_minimal()
-#ggplot(data=test,aes(x=date, y=COUNTRY, colour=EQ_PRIMARY ,size= EQ_PRIMARY, alpha=0.1, label = LOCATION_NAME )) + geom_timeline() + geom_timeline_label() + theme_minimal()
-#ggplot(data=test,aes(x=date, colour=EQ_PRIMARY ,size= EQ_PRIMARY, alpha=0.1, label = LOCATION_NAME)) +  geom_timeline_label() + geom_timeline() + theme_minimal()
-
-
-#ggplot() + geom_timeline(data=test,aes(x=date, y=COUNTRY, colour=EQ_PRIMARY ,size= EQ_PRIMARY, alpha=0.1 )) + theme_minimal()
-#ggplot() + geom_timeline(data=test,aes(x=date, colour=EQ_PRIMARY ,size= EQ_PRIMARY, alpha=0.1 )) + theme_minimal()
 
 

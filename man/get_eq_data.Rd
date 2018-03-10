@@ -4,13 +4,11 @@
 \alias{get_eq_data}
 \title{Get significant earthquake data}
 \usage{
-get_eq_data()
+
+  get_eq_data(url = "https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=13&d=189&dfn=signif.txt")
 }
-\value{
-Returns a dataframe with earthquake data
-}
-\description{
-Retrieve the significant earthquake database from the NOAA website.
+\arguments{
+\item{url}{optional, a characterstring with the URL for the significant earthquake database. Defaults to the URL for the complete database.
 
 The Significant Earthquake Database contains information on destructive earthquakes from 2150 B.C. to the present
 that meet at least one of the following criteria:
@@ -24,10 +22,17 @@ that meet at least one of the following criteria:
 
 The database should be reference to as: National Geophysical Data Center / World Data Service (NGDC/WDS): Significant Earthquake Database. National Geophysical Data Center, NOAA. doi:10.7289/V5TD9V7K
 
-More information can be found at the \href{https://www.ngdc.noaa.gov/nndc/struts/form?t=101650&s=1&d=1}{NOAA website}
+More information can be found at the \href{https://www.ngdc.noaa.gov/nndc/struts/form?t=101650&s=1&d=1}{NOAA website}}
+}
+\value{
+Returns a dataframe with earthquake data
+}
+\description{
+Retrieve the significant earthquake database from the NOAA website.
 }
 \examples{
 \dontrun{
+
 data <- get_eq_data()
 }
 }

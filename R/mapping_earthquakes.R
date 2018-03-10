@@ -5,17 +5,19 @@
 #' @param data A (filtered and) cleaned dataframe with locations from the NOAA Earthquake database
 #' @param annot_col A character string with the column that should be used for the pop-ups on the map
 #'
-#' @importFrom leaflet leaflet addTiles addCirclemarkers
+#' @import leaflet
 #' @importFrom dplyr %>%
 #'
 #' @return A Leaflet map widget with the plotted locations of Earthquakes
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'
 #' get_eq_data() %>%
 #'  eq_clean_data() %>%
 #'  eq_map(annot_col = "date")
-#'
+#'}
 eq_map <- function(data, annot_col=NA){
 
   leaflet::leaflet(data) %>%
@@ -39,8 +41,10 @@ eq_map <- function(data, annot_col=NA){
 #' @export
 #'
 #' @examples
-#' eq_create_label(data = get_eq_data() )
+#' \dontrun{
 #'
+#' eq_create_label(data = get_eq_data() )
+#' }
 eq_create_label <- function(data){
 
   data %>% dplyr::mutate(popup_text = paste0(ifelse(is.na(LOCATION_NAME), "", paste0("<b>Location: </b>", LOCATION_NAME)),

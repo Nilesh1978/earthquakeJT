@@ -1,6 +1,8 @@
 #' Get significant earthquake data
 #' @description Retrieve the significant earthquake database from the NOAA website.
 #'
+#' @param url optional, a characterstring with the URL for the significant earthquake database. Defaults to the URL for the complete database.
+#'
 #' The Significant Earthquake Database contains information on destructive earthquakes from 2150 B.C. to the present
 #' that meet at least one of the following criteria:
 #' \itemize{
@@ -17,18 +19,17 @@
 #'
 #' @return Returns a dataframe with earthquake data
 #'
-#' @importFrom readr read_delim
+#' @importFrom readr read_delim cols
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#'
 #' data <- get_eq_data()
 #' }
-get_eq_data <- function(){
-
-  url <- "https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=13&d=189&dfn=signif.txt"
-  readr::read_delim(url,delim="\t")
+get_eq_data <- function(url = "https://www.ngdc.noaa.gov/nndc/struts/results?type_0=Exact&query_0=$ID&t=101650&s=13&d=189&dfn=signif.txt"){
+  readr::read_delim(url,delim="\t", col_types = readr::cols())
 }
 
 
@@ -40,14 +41,19 @@ get_eq_data <- function(){
 #'
 #' @return This function returns the NOAA earthquake data with an added date column and coordinates converted to numeric class.
 #'
-#' @importFrom dplyr mutate
+#' @note If no month or day is available it is automatically set to 1.
+#'
+#' @importFrom dplyr mutate %>%
 #' @importFrom lubridate make_date
-#' @importFrom magrittr %>%
 #'
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#'
 #' clean_data <- eq_clean_data(raw_data)
+#' clean_data <- eq_clean_data(get_eq_data())
+#' }
 eq_clean_data <- function(data){
   data <- data %>% dplyr::mutate(date = lubridate::make_date(year = YEAR, month = ifelse(is.na(MONTH),1,MONTH), day = ifelse(is.na(DAY),1,DAY)),
                                  LATITUDE = as.numeric(LATITUDE),
@@ -68,13 +74,19 @@ eq_clean_data <- function(data){
 #' @return returns a dataframe where the contents of the column \code{LOCATION_NAME} have been stripped of the country name
 #' @export
 #'
-#' @importFrom dplyr mutate
-#' @importFrom magrittr %>%
+#' @importFrom dplyr mutate %>%
 #' @importFrom stringr str_replace
 #' @importFrom tools toTitleCase
 #'
 #' @note In some rare cases the \code{LOCATION_NAME} column has more than one country and location.
 #' This function will keep only the last location that is present in the column. It removes all information before the last colon (:).
+#'
+#' @examples
+#' \dontrun{
+#'
+#' clean_data <- eq_clean_data(get_eq_data())
+#' clean_data_location <- eq_location_clean(clean_data)
+#' }
 #'
 eq_location_clean <- function(data){
   data <- data %>% dplyr::mutate(LOCATION_NAME = trimws(stringr::str_replace(LOCATION_NAME, pattern = "^.*:[:space:]{1}", replacement = ""))) %>%
