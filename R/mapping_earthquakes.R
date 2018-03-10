@@ -46,7 +46,7 @@ eq_map <- function(data, annot_col=NA){
 #' eq_create_label(data = get_eq_data() )
 #' }
 eq_create_label <- function(data){
-
+  LOCATION_NAME <- TOTAL_DEATHS <- EQ_PRIMARY <- NULL # to avoid NOTES when building the package
   data %>% dplyr::mutate(popup_text = paste0(ifelse(is.na(LOCATION_NAME), "", paste0("<b>Location: </b>", LOCATION_NAME)),
                                     ifelse(is.na(EQ_PRIMARY), "", paste0("</br><b>Magnitude: </b>",EQ_PRIMARY)),
                                     ifelse(is.na(TOTAL_DEATHS), "", paste0("</br><b>Total deaths: </b>", TOTAL_DEATHS))

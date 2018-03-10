@@ -83,6 +83,7 @@ GeomTimeline <- ggplot2::ggproto("GeomTimeline", Geom,
 #'
 #' @import ggplot2
 #' @import grid
+#' @import scales
 #'
 #' @return Returns a layer that can be added to a ggplot object.
 #'
@@ -165,6 +166,7 @@ GeomTimelineLabel <- ggplot2::ggproto("GeomTimelineLabel", Geom,
 #' @import ggplot2
 #' @import grid
 #' @import dplyr
+#' @import scales
 #'
 #' @return Returns a layer that can be added to a ggplot object.
 #'

@@ -4,7 +4,7 @@ Title: Process and visualize NOAA Earthquake Data - Mastering Software Developme
 Version: 0.1.0.9000
 Author: Johannes van Tent
 Maintainer: Johannes van Tent <yourself@somewhere.net>
-Description: A package to process and visualise NOAA Earthquake Data
+Description: A package to process and visualise NOAA Earthquake Data. This package is part of the Mastering Software Development in R Capstone.
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -14,7 +14,12 @@ Imports:
     readr,
     tidyr,
     magrittr,
-    ggplot2
+    ggplot2,
+    lubridate,
+    stringr,
+    leaflet,
+    scales
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
